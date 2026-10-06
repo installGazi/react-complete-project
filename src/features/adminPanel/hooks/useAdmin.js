@@ -1,45 +1,56 @@
+
 import { useState, useEffect } from "react";
 import API from "../../../utils/api";
+import { debug } from "../../../utils/debug";
 
 const useAdmin = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Block a user
   const blockUser = async (id) => {
+    debug.log("Blocking user:", id);
     try {
       await API.put(`/users/block/${id}`, { action: "block" });
-      setUsers(users.map(u => u._id === id ? { ...u, isBlocked: true } : u));
+      setUsers((prev) =>
+        prev.map((u) => (u._id === id ? { ...u, isBlocked: true } : u))
+      );
+      debug.log("User blocked:", id);
     } catch (err) {
-      console.error("Block error:", err);
-      setError(err.response?.data?.message || "ব্লক করতে সমস্যা!");
+      debug.error("Block error:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Failed to block user!");
     }
   };
 
+  // Delete a user
   const deleteUser = async (id) => {
-    if (!window.confirm("ইউজারটি স্থায়ীভাবে মুছে ফেলতে চান?")) return;
+    if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
+    debug.log("Deleting user:", id);
     try {
       await API.delete(`/users/delete/${id}`);
-      setUsers(users.filter(u => u._id !== id));
+      setUsers((prev) => prev.filter((u) => u._id !== id));
+      debug.log("User deleted:", id);
     } catch (err) {
-      console.error("Delete error:", err);
-      setError(err.response?.data?.message || "ডিলিট করতে সমস্যা!");
+      debug.error("Delete error:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Failed to delete user!");
     }
   };
 
+  // Fetch all users on mount
   useEffect(() => {
     const fetchUsers = async () => {
-      console.log("🔵 API কল শুরু");
+      debug.log("Admin: fetching all users...");
       try {
         const res = await API.get("/users/all");
-        console.log("✅ API রেসপন্স:", res);
+        debug.log(`Admin: ${res.data.users?.length || 0} users loaded`);
         setUsers(res.data.users || []);
       } catch (err) {
-        console.error("❌ API Error:", err);
-        setError(err.response?.data?.message || "ইউজার লোড করতে সমস্যা!");
+        debug.error("Admin API error:", err.response?.data || err.message);
+        setError(err.response?.data?.message || "Failed to load users!");
       } finally {
         setLoading(false);
-        console.log("🔴 লোডিং শেষ");
+        debug.log("Admin: loading finished");
       }
     };
     fetchUsers();

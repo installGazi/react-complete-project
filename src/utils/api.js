@@ -1,4 +1,4 @@
-// frontend/utils/api.js
+
 import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_URL
@@ -10,7 +10,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// ✅ প্রতিটি request-এ localStorage থেকে token নিয়ে header-এ পাঠান
+// ✅ প্রতিটি request-এ token header-এ পাঠান (Layer 1 fix)
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -23,3 +23,6 @@ api.interceptors.request.use(
 );
 
 export default api;
+
+
+
